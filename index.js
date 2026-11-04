@@ -1,6 +1,7 @@
 
 
 const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 
 // 1. นำเข้าไฟล์ Routes ที่เราเพิ่งสร้าง
@@ -13,9 +14,27 @@ const { swaggerUi, swaggerSpec } = require('./config/swagger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.set('etag', false);
+const allowedOrigins = new Set(
+	process.env.CORS_ORIGINS
+		? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+		: []
+);
 
 // 2. Middleware สำหรับทำให้ Express อ่านข้อมูลแบบ JSON ที่ส่งมาใน HTTP Body ได้
 app.use(express.json());
+app.use(cors({
+	origin(origin, callback) {
+		callback(null, !origin || allowedOrigins.has(origin));
+	},
+	methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+	allowedHeaders: ['Content-Type', 'Authorization'],
+	maxAge: 86400
+}));
+app.use('/api', (req, res, next) => {
+	res.set('Cache-Control', 'no-store');
+	next();
+});
 
 
 try {
