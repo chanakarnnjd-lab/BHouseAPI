@@ -15,11 +15,11 @@ const { swaggerUi, swaggerSpec } = require('./config/swagger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.set('etag', false);
-const allowedOrigins = new Set(
+const allowedOrigins = new Set([
 	process.env.CORS_ORIGINS
 		? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
 		: []
-);
+]);
 
 // 2. Middleware สำหรับทำให้ Express อ่านข้อมูลแบบ JSON ที่ส่งมาใน HTTP Body ได้
 app.use(express.json());
