@@ -5,6 +5,10 @@ require('dotenv').config();
 
 // 1. นำเข้าไฟล์ Routes ที่เราเพิ่งสร้าง
 const itemRoutes = require('./routes/itemRouters');
+const recipeRoutes = require('./routes/recipeRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const authRoutes = require('./routes/authRoutes');
+const authenticateToken = require('./middleware/authenticateToken');
 const { swaggerUi, swaggerSpec } = require('./config/swagger');
 
 const app = express();
@@ -20,8 +24,11 @@ try {
 		res.json({ message: 'BHouse API is running' });
 	});
 	app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+	app.use('/api/auth', authRoutes);
+	app.use('/api/recipes', authenticateToken, recipeRoutes);
+	app.use('/api/categories', authenticateToken, categoryRoutes);
 	// ทุกๆ เส้นทางใน itemRoutes จะเริ่มต้นด้วย /api/items
-	app.use('/api/items', itemRoutes);
+	app.use('/api/ingredient', authenticateToken, itemRoutes);
 
 	// 4. หน้าแรกสำหรับเช็กสถานะเซิร์ฟเวอร์ทั่วไป
 	app.get('/', (req, res) => {

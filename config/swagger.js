@@ -11,6 +11,16 @@ const options = {
       version: '1.0.0',
       description: 'ระบบ API สำหรับจัดการสินค้าและเชื่อมต่อ Aiven MySQL',
     },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      }
+    },
+    security: [{ bearerAuth: [] }],
     servers: [
       {
         url: `http://localhost:${PORT}`, // เปลี่ยน {PORT} เป็นพอร์ตที่คุณใช้งานจริง

@@ -6,7 +6,7 @@ const itemController = require('../controllers/itemController');
 
 /**
  * @openapi
- * /api/items:
+ * /api/ingredient:
  *   get:
  *     summary: ดึงรายการวัตถุดิบทั้งหมด
  *     description: เรียกดูข้อมูลวัตถุดิบทั้งหมดจากฐานข้อมูล
@@ -33,7 +33,7 @@ router.get('/', itemController.getAllItems);
 
 /**
  * @openapi
- * /api/items/byId/{id}:
+ * /api/ingredient/byId/{id}:
  *   get:
  *     summary: ดึงข้อมูลวัตถุดิบตาม ID
  *     description: เรียกดูข้อมูลวัตถุดิบรายการเดียวจากฐานข้อมูล
@@ -64,7 +64,7 @@ router.get('/byId/:id', itemController.getItemById);
 
 /**
  * @openapi
- * /api/items:
+ * /api/ingredient:
  *   post:
  *     summary: เพิ่มวัตถุดิบใหม่
  *     description: ส่งข้อมูลเพื่อบันทึกวัตถุดิบใหม่ลงในฐานข้อมูล
@@ -79,7 +79,6 @@ router.get('/byId/:id', itemController.getItemById);
  *               - price
  *               - unitId
  *               - qty
- *               - userId  
  *             properties:
  *               name:
  *                 type: string
@@ -93,9 +92,6 @@ router.get('/byId/:id', itemController.getItemById);
  *               unitId:
  *                 type: integer
  *                 example: 1
- *               userId:
- *                 type: string
- *                 example: "admin"
  *     responses:
  *       201:
  *         description: เพิ่มวัตถุดิบสำเร็จ
@@ -104,7 +100,7 @@ router.post('/', itemController.createItem);
 
 /**
  * @openapi
- * /api/items/{id}:
+ * /api/ingredient/{id}:
  *   put:
  *     summary: แก้ไขข้อมูลวัตถุดิบ
  *     description: อัปเดตข้อมูลวัตถุดิบตาม ID
@@ -135,9 +131,6 @@ router.post('/', itemController.createItem);
  *               unitId:
  *                 type: integer
  *                 example: 1
- *               userId:
- *                 type: string
- *                 example: "admin"
  *     responses:
  *       200:
  *         description: แก้ไขข้อมูลวัตถุดิบสำเร็จ
@@ -150,7 +143,7 @@ router.put('/:id', itemController.updateItemPut);
 
 /**
  * @openapi
- * /api/items/{id}:
+ * /api/ingredient/{id}:
  *   patch:
  *     summary: แก้ไขข้อมูลวัตถุดิบบางส่วน
  *     description: อัปเดตเฉพาะฟิลด์ที่ส่งมาในข้อมูลวัตถุดิบตาม ID
@@ -181,9 +174,6 @@ router.put('/:id', itemController.updateItemPut);
  *               unitId:
  *                 type: integer
  *                 example: 1
- *               userId:
- *                 type: string
- *                 example: "admin"
  *     responses:
  *       200:
  *         description: แก้ไขข้อมูลวัตถุดิบสำเร็จ
@@ -196,7 +186,7 @@ router.patch('/:id', itemController.updateItemPatch);
 
 /**
  * @openapi
- * /api/items/{id}:
+ * /api/ingredient/{id}:
  *   delete:
  *     summary: ลบข้อมูลวัตถุดิบ
  *     description: ลบข้อมูลวัตถุดิบตาม ID
