@@ -15,22 +15,26 @@ const { swaggerUi, swaggerSpec } = require('./config/swagger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.set('etag', false);
-const allowedOrigins = new Set([
-	process.env.CORS_ORIGINS
-		? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
-		: []
-]);
-
-// 2. Middleware สำหรับทำให้ Express อ่านข้อมูลแบบ JSON ที่ส่งมาใน HTTP Body ได้
-app.use(express.json());
-app.use(cors({
+const allowedOrigins = new Set(
+	[process.env.CORS_ORIGINS, process.env.CORS_ORIGIN, process.env.cors_origin]
+		.flatMap((origins) => typeof origins === 'string' ? origins.split(',') : [])
+		.map((origin) => origin.trim())
+		.filter(Boolean)
+);
+const corsOptions = {
 	origin(origin, callback) {
 		callback(null, origin && allowedOrigins.has(origin) ? origin : false);
 	},
 	methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 	allowedHeaders: ['Content-Type', 'Authorization'],
-	maxAge: 86400
-}));
+	maxAge: 86400,
+	optionsSuccessStatus: 204
+};
+
+// 2. Middleware สำหรับทำให้ Express อ่านข้อมูลแบบ JSON ที่ส่งมาใน HTTP Body ได้
+app.use(express.json());
+app.use(cors(corsOptions));
+app.options(/^\/api\/.*/, cors(corsOptions));
 app.use('/api', (req, res, next) => {
 	res.set('Cache-Control', 'no-store');
 	next();
