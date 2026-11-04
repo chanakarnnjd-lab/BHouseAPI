@@ -25,7 +25,7 @@ const allowedOrigins = new Set([
 app.use(express.json());
 app.use(cors({
 	origin(origin, callback) {
-		callback(null, !origin || allowedOrigins.has(origin));
+		callback(null, origin && allowedOrigins.has(origin) ? origin : false);
 	},
 	methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 	allowedHeaders: ['Content-Type', 'Authorization'],
