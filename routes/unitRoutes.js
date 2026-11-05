@@ -1,5 +1,6 @@
 const express = require('express');
 const unitController = require('../controllers/unitController');
+const requireAdmin = require('../middleware/requireAdmin');
 
 const router = express.Router();
 
@@ -34,7 +35,7 @@ const router = express.Router();
  *     tags:
  *       - Units
  *     summary: ดึงหน่วยนับทั้งหมด
- *     description: ใช้ได้เฉพาะผู้ใช้ที่มีสิทธิ์ผู้ดูแลระบบ
+ *     description: ผู้ใช้ที่เข้าสู่ระบบสามารถอ่านรายการหน่วยนับได้
  *     responses:
  *       200:
  *         description: ดึงหน่วยนับสำเร็จ
@@ -56,7 +57,7 @@ const router = express.Router();
  *         description: ข้อมูลไม่ถูกต้องหรือไม่พบหน่วยหลัก
  */
 router.get('/', unitController.getAllUnits);
-router.post('/', unitController.createUnit);
+router.post('/', requireAdmin, unitController.createUnit);
 
 /**
  * @openapi
@@ -65,7 +66,7 @@ router.post('/', unitController.createUnit);
  *     tags:
  *       - Units
  *     summary: ดึงหน่วยนับตาม ID
- *     description: ใช้ได้เฉพาะผู้ใช้ที่มีสิทธิ์ผู้ดูแลระบบ
+ *     description: ผู้ใช้ที่เข้าสู่ระบบสามารถอ่านข้อมูลหน่วยนับได้
  *     parameters:
  *       - in: path
  *         name: id
@@ -119,7 +120,7 @@ router.post('/', unitController.createUnit);
  *         description: หน่วยนับยังถูกใช้งาน
  */
 router.get('/:id', unitController.getUnitById);
-router.put('/:id', unitController.updateUnit);
-router.delete('/:id', unitController.deleteUnit);
+router.put('/:id', requireAdmin, unitController.updateUnit);
+router.delete('/:id', requireAdmin, unitController.deleteUnit);
 
 module.exports = router;
