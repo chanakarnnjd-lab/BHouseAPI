@@ -57,6 +57,7 @@ const router = express.Router();
  *               qty:
  *                 type: integer
  *                 minimum: 1
+ *                 description: จำนวนวัตถุดิบที่ใช้ในสูตร
  *                 example: 2
  *         categoryIds:
  *           type: array
@@ -155,6 +156,59 @@ router.post('/', recipeController.createRecipe);
  */
 /**
  * @openapi
+ * /api/recipes/{id}/ingredients/cost:
+ *   get:
+ *     tags:
+ *       - Recipes
+ *     summary: ดึงรายการวัตถุดิบพร้อมต้นทุนตามปริมาณที่ใช้ในสูตร
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: ดึงรายการวัตถุดิบและต้นทุนต่อรายการสำเร็จ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       ingredientId:
+ *                         type: integer
+ *                       itemId:
+ *                         type: integer
+ *                       itemName:
+ *                         type: string
+ *                       quantity:
+ *                         type: number
+ *                         description: จำนวนที่ใช้ในสูตร
+ *                       unitId:
+ *                         type: integer
+ *                       unitName:
+ *                         type: string
+ *                       costPerUnit:
+ *                         type: number
+ *                         description: ต้นทุนต่อหนึ่งหน่วยที่ใช้ในสูตร
+ *                       totalCost:
+ *                         type: number
+ *                         description: ต้นทุนตามจำนวนที่ใช้ในสูตร
+ *       404:
+ *         description: ไม่พบสูตรอาหาร
+ *       422:
+ *         description: ข้อมูลสต็อกหรือหน่วยไม่สามารถใช้คำนวณต้นทุนได้
+ */
+/**
+ * @openapi
  * /api/recipes/{id}/ingredients:
  *   get:
  *     tags:
@@ -175,6 +229,7 @@ router.post('/', recipeController.createRecipe);
 router.get('/:id', recipeController.getRecipeById);
 router.put('/:id', recipeController.updateRecipe);
 router.delete('/:id', recipeController.deleteRecipe);
+router.get('/:id/ingredients/cost', recipeController.getRecipeIngredientCosts);
 router.get('/:id/ingredients', recipeController.getRecipeIngredients);
 
 module.exports = router;

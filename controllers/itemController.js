@@ -3,8 +3,13 @@ const pool = require('../config/db'); // ดึง Database Pool มาใช้
 // 1. ดึงข้อมูลสินค้าทั้งหมด (GET)
 exports.getAllItems = async (req, res) => {
   try {
-    const [resultSets] = await pool.query('CALL getAllItemsByUser(?)', [req.auth.userId]);
-    const [rows] = resultSets;
+    const [rows] = await pool.query(
+      `SELECT i.*, u.unitName 
+       FROM items i 
+       LEFT JOIN units u ON i.unitId = u.unitId 
+       WHERE i.userId = ?`,
+      [req.auth.userId]
+    );
     return res.status(200).json({
       success: true,
       message: 'ดึงข้อมูลสินค้าสำเร็จ',

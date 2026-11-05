@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { calculateRecipeIngredientCost } = require('../utils/recipeIngredientCost');
 
 const MAX_MYSQL_INT = 2147483647;
 const isPositiveInteger = (value) =>
@@ -41,10 +42,11 @@ const validateRecipe = (body, userId) => {
   const normalizedIngredients = [];
   const itemIds = new Set();
   for (const ingredient of ingredients) {
+    const quantity = ingredient?.qty ?? ingredient?.quantity;
     if (
       !ingredient ||
       !isPositiveInteger(ingredient.itemId) ||
-      !isPositiveInteger(ingredient.qty) ||
+      !isPositiveInteger(quantity) ||
       (ingredient.unitId !== undefined && !isPositiveInteger(ingredient.unitId)) ||
       itemIds.has(ingredient.itemId)
     ) {
@@ -55,7 +57,7 @@ const validateRecipe = (body, userId) => {
     normalizedIngredients.push({
       itemId: ingredient.itemId,
       unitId: ingredient.unitId ?? null,
-      qty: ingredient.qty
+      qty: quantity
     });
   }
 
@@ -90,7 +92,8 @@ const readRecipes = async (connection, userId, recipeId) => {
   const [rows] = await connection.query(
     `SELECT r.recipesId, r.menu, r.margin, r.acc_unit, r.serve, r.userId, r.picUrl,
             g.ingredientId, g.itemId, COALESCE(g.unitId, i.unitId) AS recipeUnitId,
-            g.qty AS ingredientQty, i.itemName, i.price,
+            g.qty AS ingredientQty, i.itemName, i.qty AS stockQuantity,
+            i.unitId AS inventoryUnitId, i.price,
             recipeUnit.unitName AS recipeUnitName
      FROM recipes r
      LEFT JOIN ingredients g ON g.recipesId = r.recipesId
@@ -125,8 +128,11 @@ const readRecipes = async (connection, userId, recipeId) => {
         itemId: row.itemId,
         itemName: row.itemName,
         qty: row.ingredientQty,
+        quantity: row.ingredientQty,
         unitId: row.recipeUnitId ?? row.unitId,
         unitName: row.recipeUnitName,
+        stockQuantity: row.stockQuantity,
+        inventoryUnitId: row.inventoryUnitId,
         price: row.price
       });
     }
@@ -278,8 +284,9 @@ exports.getRecipeIngredients = async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      `SELECT g.ingredientId, g.itemId, i.itemName, g.qty,
-              COALESCE(g.unitId, i.unitId) AS unitId, unit.unitName, i.price
+      `SELECT g.ingredientId, g.itemId, i.itemName, i.qty AS stockQuantity,
+              i.unitId AS inventoryUnitId, i.price, g.qty,
+              COALESCE(g.unitId, i.unitId) AS unitId, unit.unitName
        FROM recipes r
        LEFT JOIN ingredients g ON g.recipesId = r.recipesId
        LEFT JOIN items i ON i.itemId = g.itemId AND i.userId = r.userId
@@ -300,8 +307,11 @@ exports.getRecipeIngredients = async (req, res) => {
         itemId: row.itemId,
         itemName: row.itemName,
         qty: row.qty,
+        quantity: row.qty,
         unitId: row.unitId,
         unitName: row.unitName,
+        stockQuantity: row.stockQuantity,
+        inventoryUnitId: row.inventoryUnitId,
         price: row.price
       }));
 
@@ -311,6 +321,100 @@ exports.getRecipeIngredients = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'เกิดข้อผิดพลาดในการดึงรายการวัตถุดิบ'
+    });
+  }
+};
+
+exports.getRecipeIngredientCosts = async (req, res) => {
+  const recipesId = Number(req.params.id);
+  if (!isPositiveInteger(recipesId)) {
+    return res.status(400).json({ success: false, message: 'recipesId ไม่ถูกต้อง' });
+  }
+
+  try {
+    const [recipes] = await pool.query(
+      'SELECT recipesId FROM recipes WHERE recipesId = ? AND userId = ? LIMIT 1',
+      [recipesId, req.auth.userId]
+    );
+    if (recipes.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่พบสูตรอาหาร' });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT g.ingredientId, g.itemId, i.itemName,
+              g.qty AS quantityUsed, COALESCE(g.unitId, i.unitId) AS unitId,
+              usedUnit.unitName, i.qty AS inventoryQuantity,
+              i.unitId AS inventoryUnitId, i.price AS inventoryPrice
+       FROM ingredients g
+       LEFT JOIN items i ON i.itemId = g.itemId AND i.userId = ?
+       LEFT JOIN units usedUnit ON usedUnit.unitId = COALESCE(g.unitId, i.unitId)
+       WHERE g.recipesId = ?
+       ORDER BY g.ingredientId`,
+      [req.auth.userId, recipesId]
+    );
+    const [unitRows] = await pool.query('SELECT unitId, parentId, N FROM units');
+    const units = new Map(unitRows.map((unit) => [
+      unit.unitId,
+      { parentId: unit.parentId, factor: unit.N === null ? null : Number(unit.N) }
+    ]));
+
+    const ingredients = [];
+    for (const row of rows) {
+      if (
+        row.quantityUsed === null || row.inventoryQuantity === null ||
+        row.inventoryUnitId === null || row.inventoryPrice === null
+      ) {
+        console.error('Unable to calculate recipe ingredient cost:', {
+          recipesId,
+          ingredientId: row.ingredientId,
+          itemId: row.itemId
+        });
+        return res.status(422).json({
+          success: false,
+          message: 'ไม่สามารถคำนวณต้นทุนวัตถุดิบได้ กรุณาตรวจสอบจำนวนคงเหลือและการแปลงหน่วย'
+        });
+      }
+
+      const costs = calculateRecipeIngredientCost(
+        { quantity: Number(row.quantityUsed), unitId: row.unitId },
+        {
+          quantity: Number(row.inventoryQuantity),
+          unitId: row.inventoryUnitId,
+          price: Number(row.inventoryPrice)
+        },
+        units
+      );
+      if (!costs || typeof row.itemName !== 'string' || typeof row.unitName !== 'string') {
+        console.error('Unable to calculate recipe ingredient cost:', {
+          recipesId,
+          ingredientId: row.ingredientId,
+          itemId: row.itemId
+        });
+        return res.status(422).json({
+          success: false,
+          message: 'ไม่สามารถคำนวณต้นทุนวัตถุดิบได้ กรุณาตรวจสอบจำนวนคงเหลือและการแปลงหน่วย'
+        });
+      }
+
+      ingredients.push({
+        ingredientId: row.ingredientId,
+        itemId: row.itemId,
+        itemName: row.itemName,
+        quantity: Number(row.quantityUsed),
+        qty: Number(row.quantityUsed),
+        unitId: row.unitId,
+        unitName: row.unitName,
+        costPerUnit: costs.costPerRecipeUnit,
+        totalCost: costs.totalCost
+      });
+    }
+
+    return res.status(200).json({ success: true, data: ingredients });
+  } catch (error) {
+    console.error('Unable to calculate recipe ingredient costs:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'เกิดข้อผิดพลาดในการคำนวณต้นทุนวัตถุดิบ'
     });
   }
 };
