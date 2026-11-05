@@ -8,6 +8,8 @@ const router = express.Router();
  * @openapi
  * /api/auth/register:
  *   post:
+ *     tags:
+ *       - Auth
  *     summary: สร้างบัญชีผู้ใช้
  *     description: สร้างบัญชีใหม่และจัดเก็บรหัสผ่านเป็น bcrypt hash
  *     security: []
@@ -52,6 +54,8 @@ router.post('/register', authController.register);
  * @openapi
  * /api/auth/login:
  *   post:
+ *     tags:
+ *       - Auth
  *     summary: เข้าสู่ระบบ
  *     description: ตรวจสอบ email และ password แล้วคืน JWT ที่มีอายุ 1 ชั่วโมง
  *     security: []
@@ -89,6 +93,8 @@ router.post('/login', authController.login);
  * @openapi
  * /api/auth/logout:
  *   post:
+ *     tags:
+ *       - Auth
  *     summary: ออกจากระบบและยกเลิก access token
  *     security:
  *       - bearerAuth: []

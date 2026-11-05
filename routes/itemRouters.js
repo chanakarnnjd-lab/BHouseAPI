@@ -8,6 +8,8 @@ const itemController = require('../controllers/itemController');
  * @openapi
  * /api/ingredient:
  *   get:
+ *     tags:
+ *       - Items
  *     summary: ดึงรายการวัตถุดิบทั้งหมด
  *     description: เรียกดูข้อมูลวัตถุดิบทั้งหมดจากฐานข้อมูล
  *     responses:
@@ -35,6 +37,8 @@ router.get('/', itemController.getAllItems);
  * @openapi
  * /api/ingredient/byId/{id}:
  *   get:
+ *     tags:
+ *       - Items
  *     summary: ดึงข้อมูลวัตถุดิบตาม ID
  *     description: เรียกดูข้อมูลวัตถุดิบรายการเดียวจากฐานข้อมูล
  *     parameters:
@@ -66,6 +70,8 @@ router.get('/byId/:id', itemController.getItemById);
  * @openapi
  * /api/ingredient:
  *   post:
+ *     tags:
+ *       - Items
  *     summary: เพิ่มวัตถุดิบใหม่
  *     description: ส่งข้อมูลเพื่อบันทึกวัตถุดิบใหม่ลงในฐานข้อมูล
  *     requestBody:
@@ -102,6 +108,8 @@ router.post('/', itemController.createItem);
  * @openapi
  * /api/ingredient/{id}:
  *   put:
+ *     tags:
+ *       - Items
  *     summary: แก้ไขข้อมูลวัตถุดิบ
  *     description: อัปเดตข้อมูลวัตถุดิบตาม ID
  *     parameters:
@@ -145,6 +153,8 @@ router.put('/:id', itemController.updateItemPut);
  * @openapi
  * /api/ingredient/{id}:
  *   patch:
+ *     tags:
+ *       - Items
  *     summary: แก้ไขข้อมูลวัตถุดิบบางส่วน
  *     description: อัปเดตเฉพาะฟิลด์ที่ส่งมาในข้อมูลวัตถุดิบตาม ID
  *     parameters:
@@ -188,6 +198,8 @@ router.patch('/:id', itemController.updateItemPatch);
  * @openapi
  * /api/ingredient/{id}:
  *   delete:
+ *     tags:
+ *       - Items
  *     summary: ลบข้อมูลวัตถุดิบ
  *     description: ลบข้อมูลวัตถุดิบตาม ID
  *     parameters:

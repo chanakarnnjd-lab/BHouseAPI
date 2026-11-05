@@ -1,0 +1,121 @@
+const express = require('express');
+const unitController = require('../controllers/unitController');
+
+const router = express.Router();
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     UnitInput:
+ *       type: object
+ *       required:
+ *         - unitName
+ *       properties:
+ *         unitName:
+ *           type: string
+ *           maxLength: 100
+ *           example: kg
+ *         parentId:
+ *           type: integer
+ *           nullable: true
+ *           example: 2
+ *         N:
+ *           type: integer
+ *           nullable: true
+ *           description: ตัวคูณแปลงหน่วย
+ *           example: 1000
+ */
+
+/**
+ * @openapi
+ * /api/units:
+ *   get:
+ *     tags:
+ *       - Units
+ *     summary: ดึงหน่วยนับทั้งหมด
+ *     responses:
+ *       200:
+ *         description: ดึงหน่วยนับสำเร็จ
+ *   post:
+ *     tags:
+ *       - Units
+ *     summary: สร้างหน่วยนับ
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UnitInput'
+ *     responses:
+ *       201:
+ *         description: สร้างหน่วยนับสำเร็จ
+ *       400:
+ *         description: ข้อมูลไม่ถูกต้องหรือไม่พบหน่วยหลัก
+ */
+router.get('/', unitController.getAllUnits);
+router.post('/', unitController.createUnit);
+
+/**
+ * @openapi
+ * /api/units/{id}:
+ *   get:
+ *     tags:
+ *       - Units
+ *     summary: ดึงหน่วยนับตาม ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: ดึงหน่วยนับสำเร็จ
+ *       404:
+ *         description: ไม่พบหน่วยนับ
+ *   put:
+ *     tags:
+ *       - Units
+ *     summary: แก้ไขหน่วยนับ
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UnitInput'
+ *     responses:
+ *       200:
+ *         description: แก้ไขหน่วยนับสำเร็จ
+ *       400:
+ *         description: ข้อมูลไม่ถูกต้องหรือทำให้ hierarchy เกิดวงจร
+ *       404:
+ *         description: ไม่พบหน่วยนับ
+ *   delete:
+ *     tags:
+ *       - Units
+ *     summary: ลบหน่วยนับ
+ *     description: ลบไม่ได้หากหน่วยถูกอ้างอิงโดย item หรือหน่วยย่อย
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: ลบหน่วยนับสำเร็จ
+ *       409:
+ *         description: หน่วยนับยังถูกใช้งาน
+ */
+router.get('/:id', unitController.getUnitById);
+router.put('/:id', unitController.updateUnit);
+router.delete('/:id', unitController.deleteUnit);
+
+module.exports = router;

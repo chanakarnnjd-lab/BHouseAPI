@@ -11,6 +11,13 @@ const options = {
       version: '1.0.0',
       description: 'ระบบ API สำหรับจัดการสินค้าและเชื่อมต่อ Aiven MySQL',
     },
+    tags: [
+      { name: 'Auth', description: 'เข้าสู่ระบบ สมัครสมาชิก และออกจากระบบ' },
+      { name: 'Items', description: 'จัดการวัตถุดิบ' },
+      { name: 'Recipes', description: 'จัดการสูตรอาหารและวัตถุดิบในสูตร' },
+      { name: 'Categories', description: 'จัดการหมวดหมู่สูตรอาหาร' },
+      { name: 'Units', description: 'จัดการหน่วยนับและความสัมพันธ์ของหน่วย' }
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {

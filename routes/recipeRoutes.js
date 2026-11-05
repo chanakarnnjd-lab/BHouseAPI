@@ -66,6 +66,8 @@ const router = express.Router();
  * @openapi
  * /api/recipes:
  *   get:
+ *     tags:
+ *       - Recipes
  *     summary: ดึงสูตรอาหารทั้งหมดพร้อมรายการวัตถุดิบ
  *     responses:
  *       200:
@@ -73,6 +75,8 @@ const router = express.Router();
  *       500:
  *         description: เกิดข้อผิดพลาดจากเซิร์ฟเวอร์
  *   post:
+ *     tags:
+ *       - Recipes
  *     summary: สร้างสูตรอาหารพร้อมรายการวัตถุดิบ
  *     requestBody:
  *       required: true
@@ -93,6 +97,8 @@ router.post('/', recipeController.createRecipe);
  * @openapi
  * /api/recipes/{id}:
  *   get:
+ *     tags:
+ *       - Recipes
  *     summary: ดึงสูตรอาหารตาม ID พร้อมรายการวัตถุดิบ
  *     parameters:
  *       - in: path
@@ -106,6 +112,8 @@ router.post('/', recipeController.createRecipe);
  *       404:
  *         description: ไม่พบสูตรอาหาร
  *   put:
+ *     tags:
+ *       - Recipes
  *     summary: แทนที่ข้อมูลสูตรอาหารและรายการวัตถุดิบทั้งหมด
  *     parameters:
  *       - in: path
@@ -125,6 +133,8 @@ router.post('/', recipeController.createRecipe);
  *       404:
  *         description: ไม่พบสูตรอาหาร
  *   delete:
+ *     tags:
+ *       - Recipes
  *     summary: ลบสูตรอาหารและรายการวัตถุดิบ
  *     parameters:
  *       - in: path
@@ -142,6 +152,8 @@ router.post('/', recipeController.createRecipe);
  * @openapi
  * /api/recipes/{id}/ingredients:
  *   get:
+ *     tags:
+ *       - Recipes
  *     summary: ดึงรายการวัตถุดิบของสูตรอาหาร
  *     parameters:
  *       - in: path

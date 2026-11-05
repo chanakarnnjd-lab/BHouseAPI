@@ -22,11 +22,15 @@ const router = express.Router();
  * @openapi
  * /api/categories:
  *   get:
+ *     tags:
+ *       - Categories
  *     summary: ดึงหมวดหมู่สูตรอาหารทั้งหมด
  *     responses:
  *       200:
  *         description: ดึงหมวดหมู่สำเร็จ
  *   post:
+ *     tags:
+ *       - Categories
  *     summary: สร้างหมวดหมู่สูตรอาหาร
  *     requestBody:
  *       required: true
@@ -47,6 +51,8 @@ router.post('/', categoryController.createCategory);
  * @openapi
  * /api/categories/{id}:
  *   get:
+ *     tags:
+ *       - Categories
  *     summary: ดึงหมวดหมู่ตาม ID
  *     parameters:
  *       - in: path
@@ -60,6 +66,8 @@ router.post('/', categoryController.createCategory);
  *       404:
  *         description: ไม่พบหมวดหมู่
  *   put:
+ *     tags:
+ *       - Categories
  *     summary: แก้ไขชื่อหมวดหมู่
  *     parameters:
  *       - in: path
@@ -77,6 +85,8 @@ router.post('/', categoryController.createCategory);
  *       200:
  *         description: แก้ไขหมวดหมู่สำเร็จ
  *   delete:
+ *     tags:
+ *       - Categories
  *     summary: ลบหมวดหมู่
  *     description: ลบความสัมพันธ์ของหมวดหมู่กับสูตรอาหารที่เกี่ยวข้องด้วย
  *     parameters:
