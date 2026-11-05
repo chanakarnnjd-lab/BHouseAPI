@@ -16,7 +16,7 @@ const validateRecipe = (body, userId) => {
   const {
     menu,
     margin,
-    acc_unit: accUnit,
+    actualPrice,
     serve,
     picUrl,
     ingredients,
@@ -28,7 +28,6 @@ const validateRecipe = (body, userId) => {
     !menu.trim() ||
     menu.trim().length > 100 ||
     !isNonNegativeInteger(margin) ||
-    !isPositiveNumber(accUnit) ||
     !isPositiveInteger(serve) ||
     typeof userId !== 'string' ||
     !userId.trim() ||
@@ -75,7 +74,7 @@ const validateRecipe = (body, userId) => {
   return {
     menu: menu.trim(),
     margin,
-    accUnit,
+    actualPrice,
     serve,
     userId,
     picUrl: picUrl ?? null,
@@ -90,7 +89,7 @@ const readRecipes = async (connection, userId, recipeId) => {
     : 'WHERE r.userId = ? AND r.recipesId = ?';
   const params = recipeId === undefined ? [userId] : [userId, recipeId];
   const [rows] = await connection.query(
-    `SELECT r.recipesId, r.menu, r.margin, r.acc_unit, r.serve, r.userId, r.picUrl,
+    `SELECT r.recipesId, r.menu, r.margin, r.actualPrice, r.serve, r.userId, r.picUrl,
             g.ingredientId, g.itemId, COALESCE(g.unitId, i.unitId) AS recipeUnitId,
             g.qty AS ingredientQty, i.itemName, i.qty AS stockQuantity,
             i.unitId AS inventoryUnitId, i.price,
@@ -112,7 +111,7 @@ const readRecipes = async (connection, userId, recipeId) => {
         recipesId: row.recipesId,
         menu: row.menu,
         margin: row.margin,
-        acc_unit: row.acc_unit,
+        actualPrice: row.actualPrice,
         serve: row.serve,
         userId: row.userId,
         picUrl: row.picUrl,
@@ -424,7 +423,7 @@ exports.createRecipe = async (req, res) => {
   if (!recipe) {
     return res.status(400).json({
       success: false,
-      message: 'กรุณาระบุ menu, margin, acc_unit, serve และ ingredients ให้ถูกต้อง'
+      message: 'กรุณาระบุ menu, margin, actualPrice, serve และ ingredients ให้ถูกต้อง'
     });
   }
 
@@ -437,8 +436,8 @@ exports.createRecipe = async (req, res) => {
     await validateUser(connection, recipe.userId);
 
     const [result] = await connection.query(
-      'INSERT INTO recipes (menu, margin, acc_unit, serve, userId, picUrl) VALUES (?, ?, ?, ?, ?, ?)',
-      [recipe.menu, recipe.margin, recipe.accUnit, recipe.serve, recipe.userId, recipe.picUrl]
+      'INSERT INTO recipes (menu, margin, actualPrice, serve, userId, picUrl) VALUES (?, ?, ?, ?, ?, ?)',
+      [recipe.menu, recipe.margin, recipe.actualPrice, recipe.serve, recipe.userId, recipe.picUrl]
     );
     await insertIngredients(connection, result.insertId, recipe.userId, recipe.ingredients);
     await insertRecipeCategories(connection, result.insertId, recipe.userId, recipe.categoryIds);
@@ -476,7 +475,7 @@ exports.updateRecipe = async (req, res) => {
   if (!recipe) {
     return res.status(400).json({
       success: false,
-      message: 'กรุณาระบุ menu, margin, acc_unit, serve และ ingredients ให้ถูกต้อง'
+      message: 'กรุณาระบุ menu, margin, actualPrice, serve และ ingredients ให้ถูกต้อง'
     });
   }
 
@@ -499,8 +498,8 @@ exports.updateRecipe = async (req, res) => {
 
     await validateUser(connection, recipe.userId);
     await connection.query(
-      'UPDATE recipes SET menu = ?, margin = ?, acc_unit = ?, serve = ?, picUrl = ? WHERE recipesId = ? AND userId = ?',
-      [recipe.menu, recipe.margin, recipe.accUnit, recipe.serve, recipe.picUrl, recipesId, req.auth.userId]
+      'UPDATE recipes SET menu = ?, margin = ?, actualPrice = ?, serve = ?, picUrl = ? WHERE recipesId = ? AND userId = ?',
+      [recipe.menu, recipe.margin, recipe.actualPrice, recipe.serve, recipe.picUrl, recipesId, req.auth.userId]
     );
     await connection.query('DELETE FROM ingredients WHERE recipesId = ?', [recipesId]);
     await connection.query('DELETE FROM recipes_categories WHERE recipesId = ?', [recipesId]);

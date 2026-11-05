@@ -12,7 +12,7 @@ const router = express.Router();
  *       required:
  *         - menu
  *         - margin
- *         - acc_unit
+ *         - actualPrice
  *         - serve
  *         - ingredients
  *       properties:
@@ -24,10 +24,11 @@ const router = express.Router();
  *           type: integer
  *           minimum: 0
  *           example: 30
- *         acc_unit:
+ *         actualPrice:
  *           type: number
  *           exclusiveMinimum: 0
- *           example: 1
+ *           description: ราคาขายจริงของสูตรอาหาร
+ *           example: 120
  *         serve:
  *           type: integer
  *           minimum: 1
