@@ -7,7 +7,7 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'My Express MySQL API',
+      title: 'BHouse API',
       version: '1.0.0',
       description: 'ระบบ API สำหรับจัดการสินค้าและเชื่อมต่อ Aiven MySQL',
     },
