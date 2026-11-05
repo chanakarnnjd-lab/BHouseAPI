@@ -53,7 +53,8 @@ exports.register = async (req, res) => {
             user: {
               userId,
               email: normalizedEmail,
-              name: name.trim()
+              name: name.trim(),
+              isAdmin: false
             }
           }
         });
@@ -112,7 +113,7 @@ exports.login = async (req, res) => {
 
   try {
     const [users] = await pool.query(
-      'SELECT userId, email, password, name FROM users WHERE email = ? LIMIT 1',
+      'SELECT userId, email, password, name, isAdmin FROM users WHERE email = ? LIMIT 1',
       [normalizedEmail]
     );
     const user = users[0];
@@ -125,7 +126,7 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user.userId, email: user.email },
+      { userId: user.userId, email: user.email, isAdmin: Boolean(user.isAdmin) },
       jwtSecret,
       { expiresIn: '1h' }
     );
@@ -138,7 +139,8 @@ exports.login = async (req, res) => {
         user: {
           userId: user.userId,
           email: user.email,
-          name: user.name
+          name: user.name,
+          isAdmin: Boolean(user.isAdmin)
         }
       }
     });
