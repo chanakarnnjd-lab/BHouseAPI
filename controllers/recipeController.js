@@ -45,6 +45,7 @@ const validateRecipe = (body, userId) => {
       !ingredient ||
       !isPositiveInteger(ingredient.itemId) ||
       !isPositiveInteger(ingredient.qty) ||
+      (ingredient.unitId !== undefined && !isPositiveInteger(ingredient.unitId)) ||
       itemIds.has(ingredient.itemId)
     ) {
       return null;
@@ -53,6 +54,7 @@ const validateRecipe = (body, userId) => {
     itemIds.add(ingredient.itemId);
     normalizedIngredients.push({
       itemId: ingredient.itemId,
+      unitId: ingredient.unitId ?? null,
       qty: ingredient.qty
     });
   }
@@ -87,11 +89,13 @@ const readRecipes = async (connection, userId, recipeId) => {
   const params = recipeId === undefined ? [userId] : [userId, recipeId];
   const [rows] = await connection.query(
     `SELECT r.recipesId, r.menu, r.margin, r.acc_unit, r.serve, r.userId, r.picUrl,
-            g.ingredientId, g.itemId, g.qty AS ingredientQty,
-            i.itemName, i.unitId, i.price
+            g.ingredientId, g.itemId, COALESCE(g.unitId, i.unitId) AS recipeUnitId,
+            g.qty AS ingredientQty, i.itemName, i.price,
+            recipeUnit.unitName AS recipeUnitName
      FROM recipes r
      LEFT JOIN ingredients g ON g.recipesId = r.recipesId
      LEFT JOIN items i ON i.itemId = g.itemId AND i.userId = r.userId
+     LEFT JOIN units recipeUnit ON recipeUnit.unitId = COALESCE(g.unitId, i.unitId)
      ${whereClause}
      ORDER BY r.recipesId, g.ingredientId`,
     params
@@ -121,7 +125,8 @@ const readRecipes = async (connection, userId, recipeId) => {
         itemId: row.itemId,
         itemName: row.itemName,
         qty: row.ingredientQty,
-        unitId: row.unitId,
+        unitId: row.recipeUnitId ?? row.unitId,
+        unitName: row.recipeUnitName,
         price: row.price
       });
     }
@@ -155,7 +160,7 @@ const insertIngredients = async (connection, recipesId, userId, ingredients) => 
   }
 
   const [items] = await connection.query(
-    'SELECT itemId FROM items WHERE itemId IN (?) AND userId = ? FOR UPDATE',
+    'SELECT itemId, unitId FROM items WHERE itemId IN (?) AND userId = ? FOR UPDATE',
     [ingredients.map(({ itemId }) => itemId), userId]
   );
   if (items.length !== ingredients.length) {
@@ -164,10 +169,40 @@ const insertIngredients = async (connection, recipesId, userId, ingredients) => 
     throw error;
   }
 
-  const placeholders = ingredients.map(() => '(?, ?, ?)').join(', ');
-  const values = ingredients.flatMap(({ itemId, qty }) => [recipesId, itemId, qty]);
+  const [unitRows] = await connection.query('SELECT unitId, parentId FROM units');
+  const units = new Map(unitRows.map((unit) => [unit.unitId, unit.parentId]));
+  const itemUnits = new Map(items.map((item) => [item.itemId, item.unitId]));
+  const rootUnitId = (unitId) => {
+    const visited = new Set();
+    let currentId = unitId;
+    while (units.has(currentId) && !visited.has(currentId)) {
+      visited.add(currentId);
+      const parentId = units.get(currentId);
+      if (parentId === null) return currentId;
+      currentId = parentId;
+    }
+    return null;
+  };
+
+  const normalizedIngredients = ingredients.map((ingredient) => {
+    const inventoryUnitId = itemUnits.get(ingredient.itemId);
+    const unitId = ingredient.unitId ?? inventoryUnitId;
+    if (
+      !units.has(unitId) ||
+      rootUnitId(unitId) === null ||
+      rootUnitId(unitId) !== rootUnitId(inventoryUnitId)
+    ) {
+      const error = new Error('หน่วยที่เลือกต้องอยู่ในลำดับหน่วยเดียวกับวัตถุดิบ');
+      error.statusCode = 400;
+      throw error;
+    }
+    return { ...ingredient, unitId };
+  });
+
+  const placeholders = normalizedIngredients.map(() => '(?, ?, ?, ?)').join(', ');
+  const values = normalizedIngredients.flatMap(({ itemId, unitId, qty }) => [recipesId, itemId, unitId, qty]);
   await connection.query(
-    `INSERT INTO ingredients (recipesId, itemId, qty) VALUES ${placeholders}`,
+    `INSERT INTO ingredients (recipesId, itemId, unitId, qty) VALUES ${placeholders}`,
     values
   );
 };
@@ -243,10 +278,12 @@ exports.getRecipeIngredients = async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      `SELECT g.ingredientId, g.itemId, i.itemName, g.qty, i.unitId, i.price
+      `SELECT g.ingredientId, g.itemId, i.itemName, g.qty,
+              COALESCE(g.unitId, i.unitId) AS unitId, unit.unitName, i.price
        FROM recipes r
        LEFT JOIN ingredients g ON g.recipesId = r.recipesId
        LEFT JOIN items i ON i.itemId = g.itemId AND i.userId = r.userId
+       LEFT JOIN units unit ON unit.unitId = COALESCE(g.unitId, i.unitId)
        WHERE r.recipesId = ? AND r.userId = ?
        ORDER BY g.ingredientId`,
       [recipesId, req.auth.userId]
@@ -264,6 +301,7 @@ exports.getRecipeIngredients = async (req, res) => {
         itemName: row.itemName,
         qty: row.qty,
         unitId: row.unitId,
+        unitName: row.unitName,
         price: row.price
       }));
 

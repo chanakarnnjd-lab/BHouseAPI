@@ -49,6 +49,11 @@ const router = express.Router();
  *                 type: integer
  *                 minimum: 1
  *                 example: 1
+ *               unitId:
+ *                 type: integer
+ *                 minimum: 1
+ *                 description: หน่วยที่อยู่ใน hierarchy เดียวกับหน่วยของวัตถุดิบ
+ *                 example: 2
  *               qty:
  *                 type: integer
  *                 minimum: 1
