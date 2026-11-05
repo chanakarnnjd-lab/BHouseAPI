@@ -34,6 +34,7 @@ const router = express.Router();
  *     tags:
  *       - Units
  *     summary: ดึงหน่วยนับทั้งหมด
+ *     description: ใช้ได้เฉพาะผู้ใช้ที่มีสิทธิ์ผู้ดูแลระบบ
  *     responses:
  *       200:
  *         description: ดึงหน่วยนับสำเร็จ
@@ -41,6 +42,7 @@ const router = express.Router();
  *     tags:
  *       - Units
  *     summary: สร้างหน่วยนับ
+ *     description: ใช้ได้เฉพาะผู้ใช้ที่มีสิทธิ์ผู้ดูแลระบบ
  *     requestBody:
  *       required: true
  *       content:
@@ -63,6 +65,7 @@ router.post('/', unitController.createUnit);
  *     tags:
  *       - Units
  *     summary: ดึงหน่วยนับตาม ID
+ *     description: ใช้ได้เฉพาะผู้ใช้ที่มีสิทธิ์ผู้ดูแลระบบ
  *     parameters:
  *       - in: path
  *         name: id
@@ -78,6 +81,7 @@ router.post('/', unitController.createUnit);
  *     tags:
  *       - Units
  *     summary: แก้ไขหน่วยนับ
+ *     description: ใช้ได้เฉพาะผู้ใช้ที่มีสิทธิ์ผู้ดูแลระบบ
  *     parameters:
  *       - in: path
  *         name: id
@@ -101,7 +105,7 @@ router.post('/', unitController.createUnit);
  *     tags:
  *       - Units
  *     summary: ลบหน่วยนับ
- *     description: ลบไม่ได้หากหน่วยถูกอ้างอิงโดย item หรือหน่วยย่อย
+ *     description: ใช้ได้เฉพาะผู้ใช้ที่มีสิทธิ์ผู้ดูแลระบบ และลบไม่ได้หากหน่วยถูกอ้างอิงโดย item หรือหน่วยย่อย
  *     parameters:
  *       - in: path
  *         name: id

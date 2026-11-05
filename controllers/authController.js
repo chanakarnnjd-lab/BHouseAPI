@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const { createHash, randomBytes } = require('node:crypto');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
+const isAdminValue = require('../utils/isAdminValue');
 
 const isValidJwtSecret = (secret) => typeof secret === 'string' && secret.length >= 32;
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -126,7 +127,7 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user.userId, email: user.email, isAdmin: Boolean(user.isAdmin) },
+      { userId: user.userId, email: user.email, isAdmin: isAdminValue(user.isAdmin) },
       jwtSecret,
       { expiresIn: '1h' }
     );
@@ -140,7 +141,7 @@ exports.login = async (req, res) => {
           userId: user.userId,
           email: user.email,
           name: user.name,
-          isAdmin: Boolean(user.isAdmin)
+          isAdmin: isAdminValue(user.isAdmin)
         }
       }
     });

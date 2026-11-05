@@ -11,6 +11,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const unitRoutes = require('./routes/unitRoutes');
 const authRoutes = require('./routes/authRoutes');
 const authenticateToken = require('./middleware/authenticateToken');
+const requireAdmin = require('./middleware/requireAdmin');
 const { swaggerUi, swaggerSpec } = require('./config/swagger');
 
 const app = express();
@@ -51,7 +52,7 @@ try {
 	app.use('/api/auth', authRoutes);
 	app.use('/api/recipes', authenticateToken, recipeRoutes);
 	app.use('/api/categories', authenticateToken, categoryRoutes);
-	app.use('/api/units', authenticateToken, unitRoutes);
+	app.use('/api/units', authenticateToken, requireAdmin, unitRoutes);
 	// ทุกๆ เส้นทางใน itemRoutes จะเริ่มต้นด้วย /api/items
 	app.use('/api/ingredient', authenticateToken, itemRoutes);
 
