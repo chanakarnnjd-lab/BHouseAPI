@@ -4,6 +4,12 @@ const { calculateRecipeIngredientCost } = require('../utils/recipeIngredientCost
 const MAX_MYSQL_INT = 2147483647;
 const isPositiveInteger = (value) =>
   Number.isSafeInteger(value) && value > 0 && value <= MAX_MYSQL_INT;
+const isValidRecipeQuantity = (value) =>
+  typeof value === 'number' &&
+  Number.isFinite(value) &&
+  value > 0 &&
+  value <= 99999999.99 &&
+  Math.round(value * 100) / 100 === value;
 const isNonNegativeInteger = (value) =>
   Number.isSafeInteger(value) && value >= 0 && value <= MAX_MYSQL_INT;
 const isPositiveNumber = (value) =>
@@ -45,7 +51,7 @@ const validateRecipe = (body, userId) => {
     if (
       !ingredient ||
       !isPositiveInteger(ingredient.itemId) ||
-      !isPositiveInteger(quantity) ||
+      !isValidRecipeQuantity(quantity) ||
       (ingredient.unitId !== undefined && !isPositiveInteger(ingredient.unitId)) ||
       itemIds.has(ingredient.itemId)
     ) {

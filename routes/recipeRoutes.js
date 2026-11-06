@@ -56,10 +56,12 @@ const router = express.Router();
  *                 description: หน่วยที่อยู่ใน hierarchy เดียวกับหน่วยของวัตถุดิบ
  *                 example: 2
  *               qty:
- *                 type: integer
- *                 minimum: 1
+ *                 type: number
+ *                 minimum: 0.01
+ *                 maximum: 99999999.99
+ *                 multipleOf: 0.01
  *                 description: จำนวนวัตถุดิบที่ใช้ในสูตร
- *                 example: 2
+ *                 example: 1.25
  *         categoryIds:
  *           type: array
  *           description: ID ของหมวดหมู่ (ไม่ระบุได้)
